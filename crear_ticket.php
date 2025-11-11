@@ -4,9 +4,15 @@ require_once 'clases/TicketManager.php';
 require_once 'clases/GestionUsuarios.php';
 require_once 'clases/SoftwareManager.php';
 
-// Verificar sesión y rol
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+// Verificar sesión
+if (!isset($_SESSION['usuario'])) {
+    header('Location: index.php');
+    exit;
+}
+
+$user_id = $_SESSION['usuario']['id_usuario'] ?? null;
+if (!$user_id) {
+    header('Location: index.php');
     exit;
 }
 
