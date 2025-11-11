@@ -23,6 +23,19 @@ class Ticket extends Conexion {
         }
     }
 
+
+    public function asignarTicket($id_ticket, $id_docente) {
+    try {
+        $sql = "UPDATE tickets SET asignado_a = :docente, estado = 'en proceso' WHERE id_ticket = :ticket";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(':docente', $id_docente, PDO::PARAM_INT);
+        $stmt->bindParam(':ticket', $id_ticket, PDO::PARAM_INT);
+        $stmt->execute();
+    } catch (PDOException $e) {
+        die("Error al asignar ticket: " . $e->getMessage());
+    }
+}
+
     // 🟡 Listar todos los tickets (admin)
     public function listarTickets() {
         try {

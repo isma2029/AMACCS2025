@@ -10,6 +10,19 @@ class Usuario {
         $this->conexion = Conexion::obtenerInstancia()->getConexion();
     }
 
+    public function listarUsuariosPorRol($rol) {
+    try {
+        $sql = "SELECT id_usuario, nombre_completo FROM usuarios WHERE rol = :rol";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(':rol', $rol);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch(PDOException $e) {
+        die("Error al listar usuarios por rol: " . $e->getMessage());
+    }
+}
+
+
     public function validarLogin($usuario, $contrasena) {
         try {
             $sql = "SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1";

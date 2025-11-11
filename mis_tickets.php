@@ -12,11 +12,67 @@ $id_usuario = $_SESSION['id_usuario'];
 $mis_tickets = $ticketObj->listarTicketsPorUsuario($id_usuario);
 ?>
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Tickets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #4CAF50;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #e0f7e0;
+        }
+    </style>
+</head>
+<body>
+
 <a href="dashboard.php">Volver al Dashboard</a>
 
-
 <h2>Mis Tickets</h2>
-<table border="1">
+<table>
     <tr>
         <th>ID</th>
         <th>Equipo</th>
@@ -38,7 +94,10 @@ $mis_tickets = $ticketObj->listarTicketsPorUsuario($id_usuario);
         <td><?php echo $t['categoria']; ?></td>
         <td><?php echo $t['estado']; ?></td>
         <td><?php echo $t['fecha_creacion']; ?></td>
-        <td><?php echo $t['fecha_cierre']; ?></td>
+        <td><?php echo $t['fecha_cierre'] ?? '-'; ?></td>
     </tr>
     <?php } ?>
 </table>
+
+</body>
+</html>

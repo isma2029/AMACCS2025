@@ -7,12 +7,13 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] != 'docente') {
     exit();
 }
 
-$solObj = new SolicitudSoftware();
 $mensaje = "";
+
+$solObj = new SolicitudSoftware();
+$id_docente = $_SESSION['id_usuario'];
 
 // Crear solicitud
 if (isset($_POST['crear'])) {
-    $id_docente = $_SESSION['id_usuario'];
     $nombre = $_POST['nombre_software'];
     $version = $_POST['version'];
     $solObj->crearSolicitud($id_docente, $nombre, $version);
@@ -20,26 +21,126 @@ if (isset($_POST['crear'])) {
 }
 
 // Listar solicitudes del docente
-$solicitudes = $solObj->listarPorDocente($_SESSION['id_usuario']);
+$solicitudes = $solObj->listarPorDocente($id_docente);
 ?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitar Software</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #4CAF50;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin-bottom: 30px;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        form input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        form input[type="submit"] {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .mensaje {
+            color: green;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #e0f7e0;
+        }
+    </style>
+</head>
+<body>
 
 <a href="dashboard.php">Volver al Dashboard</a>
 
-
 <h2>Solicitar Software</h2>
-<?php if($mensaje != "") echo "<p style='color:green;'>$mensaje</p>"; ?>
+<?php if(!empty($mensaje)) echo "<p class='mensaje'>$mensaje</p>"; ?>
 <form method="POST">
     <label>Nombre del Software:</label>
     <input type="text" name="nombre_software" required>
-    <br><br>
+
     <label>Versión:</label>
     <input type="text" name="version" required>
-    <br><br>
+
     <input type="submit" name="crear" value="Solicitar">
 </form>
 
 <h3>Mis Solicitudes</h3>
-<table border="1">
+<table>
     <tr>
         <th>ID</th>
         <th>Software</th>
@@ -59,3 +160,6 @@ $solicitudes = $solObj->listarPorDocente($_SESSION['id_usuario']);
     </tr>
     <?php } ?>
 </table>
+
+</body>
+</html>
