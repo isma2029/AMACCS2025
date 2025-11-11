@@ -110,27 +110,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token']) &&
                 $tipoMensaje = 'success';
                 // Limpiar el formulario
                 $_POST = [];
+                // Recargar la página para ver el nuevo usuario
+                header('Location: usuarios.php?exito=1');
+                exit();
             } else {
                 $mensaje = $resultado; // Mostrar mensaje de error de la función
                 $tipoMensaje = 'danger';
             }
-            // Actualizar usuario existente
-            $resultado = $gestion->actualizarUsuario($id, $nombre, $correo, $rol);
-            if ($resultado === true) {
-                $mensaje = 'Usuario actualizado correctamente';
-                $tipoMensaje = 'success';
-                // Si es el usuario actual, actualizar datos de sesión
-                if ($id == $_SESSION['id_usuario']) {
-                    $_SESSION['nombre'] = $nombre;
-                    $_SESSION['usuario'] = $usuario;
-                }
-                $usuarioEditar = null; // Limpiar formulario de edición
-            } else {
-                $mensaje = $resultado;
-                $tipoMensaje = 'danger';
-            }
-    }
-}
+        } // Cierre del else de creación de usuario
+    } // Cierre del else de validaciones
+} // Cierre del if de verificación de POST y CSRF
 
 // Obtener lista de usuarios
 $usuarios = $gestion->listarUsuarios();
