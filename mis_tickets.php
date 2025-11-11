@@ -12,6 +12,9 @@ $id_usuario = $_SESSION['id_usuario'];
 $mis_tickets = $ticketObj->listarTicketsPorUsuario($id_usuario);
 ?>
 
+<a href="dashboard.php">Volver al Dashboard</a>
+
+
 <h2>Mis Tickets</h2>
 <table border="1">
     <tr>

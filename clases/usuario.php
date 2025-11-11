@@ -1,13 +1,15 @@
 <?php
 require_once 'conexion.php';
 
-class Usuario extends Conexion {
+class Usuario {
+
+    private $conexion;
 
     public function __construct() {
-        parent::__construct(); // Llama al constructor de la clase padre (Conexion)
+        // ✅ Obtiene la conexión del Singleton
+        $this->conexion = Conexion::obtenerInstancia()->getConexion();
     }
 
-    // Método para verificar usuario y contraseña
     public function validarLogin($usuario, $contrasena) {
         try {
             $sql = "SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1";
@@ -17,22 +19,19 @@ class Usuario extends Conexion {
 
             if ($stmt->rowCount() > 0) {
                 $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                // Verificamos la contraseña usando password_verify
                 if (password_verify($contrasena, $data['contrasena'])) {
-                    return $data; // Devuelve los datos del usuario si es correcto
+                    return $data;
                 } else {
-                    return false; // Contraseña incorrecta
+                    return false;
                 }
             } else {
-                return false; // Usuario no encontrado
+                return false;
             }
         } catch (PDOException $e) {
             die("Error en validarLogin: " . $e->getMessage());
         }
     }
 
-    // Método para actualizar si fue el primer inicio
     public function marcarPrimerInicio($id_usuario) {
         try {
             $sql = "UPDATE usuarios SET primer_inicio = 0 WHERE id_usuario = :id";
@@ -44,4 +43,3 @@ class Usuario extends Conexion {
         }
     }
 }
-?>

@@ -4,8 +4,7 @@ require_once 'conexion.php';
 class Ticket extends Conexion {
 
     public function __construct() {
-        parent::__construct(); // hereda la conexión
-    }
+ $this->conexion = Conexion::obtenerInstancia()->getConexion();    }
 
     // 🟢 Crear un nuevo ticket
     public function crearTicket($id_usuario, $id_equipo, $descripcion, $urgencia, $categoria) {

@@ -37,6 +37,7 @@ if (isset($_GET['eliminar'])) {
 // Listar equipos
 $equipos = $equipoObj->listarEquipos();
 ?>
+<a href="dashboard.php">Volver al Dashboard</a>
 
 <h2>Gestión de Equipos</h2>
 

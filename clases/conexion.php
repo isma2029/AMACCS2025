@@ -106,7 +106,7 @@ class Conexion {
     /**
      * Prevenir la deserialización del objeto
      */
-    private function __wakeup() {}
+    public function __wakeup() {}
     
     /**
      * Cierra la conexión a la base de datos

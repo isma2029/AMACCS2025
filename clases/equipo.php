@@ -4,8 +4,7 @@ require_once 'conexion.php';
 class Equipo extends Conexion {
 
     public function __construct() {
-        parent::__construct();
-    }
+ $this->conexion = Conexion::obtenerInstancia()->getConexion();    }
 
     // Crear nuevo equipo
     public function crearEquipo($nombre_equipo, $numero_serie, $ubicacion = null, $estado = 'activo') {

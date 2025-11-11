@@ -23,6 +23,9 @@ if (isset($_POST['crear'])) {
 $solicitudes = $solObj->listarPorDocente($_SESSION['id_usuario']);
 ?>
 
+<a href="dashboard.php">Volver al Dashboard</a>
+
+
 <h2>Solicitar Software</h2>
 <?php if($mensaje != "") echo "<p style='color:green;'>$mensaje</p>"; ?>
 <form method="POST">

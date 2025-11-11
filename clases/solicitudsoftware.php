@@ -4,7 +4,7 @@ require_once 'conexion.php';
 class SolicitudSoftware extends Conexion {
 
     public function __construct() {
-        parent::__construct();
+        $this->conexion = Conexion::obtenerInstancia()->getConexion();
     }
 
     /**
