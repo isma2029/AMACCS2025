@@ -51,32 +51,84 @@ if (isset($_GET['editar']) && is_numeric($_GET['editar'])) {
     }
 }
 
-// Procesar actualización de perfil
+// Procesar creación/actualización de usuarios
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['csrf_token']) && 
     hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
     
-    $id = $_POST['id_usuario'] ?? 0;
+    $id = isset($_POST['id_usuario']) ? (int)$_POST['id_usuario'] : 0;
     $nombre = trim($_POST['nombre_completo']);
     $correo = trim($_POST['correo']);
     $usuario = trim($_POST['usuario']);
     $rol = $_POST['rol'] ?? 'docente';
+    $contrasena = $_POST['contrasena'] ?? '';
+    $confirmar_contrasena = $_POST['confirmar_contrasena'] ?? '';
     
-    if ($id > 0) {
-        // Actualizar usuario existente
-        $resultado = $gestion->actualizarUsuario($id, $nombre, $correo, $rol);
-        if ($resultado === true) {
-            $mensaje = 'Usuario actualizado correctamente';
-            $tipoMensaje = 'success';
-            // Si es el usuario actual, actualizar datos de sesión
-            if ($id == $_SESSION['id_usuario']) {
-                $_SESSION['nombre'] = $nombre;
-                $_SESSION['usuario'] = $usuario;
+    // Validaciones básicas
+    if (empty($nombre) || empty($correo) || empty($usuario)) {
+        $mensaje = 'Todos los campos son obligatorios';
+        $tipoMensaje = 'danger';
+    } 
+    // Si es un nuevo usuario o se está cambiando la contraseña
+    elseif (($id === 0 || !empty($contrasena)) && (empty($contrasena) || strlen($contrasena) < 6)) {
+        $mensaje = 'La contraseña debe tener al menos 6 caracteres';
+        $tipoMensaje = 'danger';
+    }
+    elseif (!empty($contrasena) && $contrasena !== $confirmar_contrasena) {
+        $mensaje = 'Las contraseñas no coinciden';
+        $tipoMensaje = 'danger';
+    } 
+    else {
+        if ($id > 0) {
+            // Actualizar usuario existente
+            $resultado = $gestion->actualizarUsuario(
+                $id, 
+                $nombre, 
+                $correo, 
+                $rol,
+                !empty($contrasena) ? $contrasena : null
+            );
+            
+            if ($resultado === true) {
+                $mensaje = 'Usuario actualizado correctamente';
+                $tipoMensaje = 'success';
+                // Si es el usuario actual, actualizar datos de sesión
+                if ($id == $_SESSION['id_usuario']) {
+                    $_SESSION['nombre'] = $nombre;
+                    $_SESSION['usuario'] = $usuario;
+                }
+                $usuarioEditar = null; // Limpiar formulario de edición
+            } else {
+                $mensaje = 'Error al actualizar el usuario';
+                $tipoMensaje = 'danger';
             }
-            $usuarioEditar = null; // Limpiar formulario de edición
         } else {
-            $mensaje = $resultado;
-            $tipoMensaje = 'danger';
-        }
+            // Crear nuevo usuario
+            $resultado = $gestion->agregarUsuario($nombre, $correo, $usuario, $contrasena, $rol);
+            
+            if ($resultado === true) {
+                $mensaje = 'Usuario creado correctamente';
+                $tipoMensaje = 'success';
+                // Limpiar el formulario
+                $_POST = [];
+            } else {
+                $mensaje = $resultado; // Mostrar mensaje de error de la función
+                $tipoMensaje = 'danger';
+            }
+            // Actualizar usuario existente
+            $resultado = $gestion->actualizarUsuario($id, $nombre, $correo, $rol);
+            if ($resultado === true) {
+                $mensaje = 'Usuario actualizado correctamente';
+                $tipoMensaje = 'success';
+                // Si es el usuario actual, actualizar datos de sesión
+                if ($id == $_SESSION['id_usuario']) {
+                    $_SESSION['nombre'] = $nombre;
+                    $_SESSION['usuario'] = $usuario;
+                }
+                $usuarioEditar = null; // Limpiar formulario de edición
+            } else {
+                $mensaje = $resultado;
+                $tipoMensaje = 'danger';
+            }
     }
 }
 
@@ -274,26 +326,55 @@ $usuarioActual = $gestion->obtenerUsuarioPorId($_SESSION['id_usuario']);
                                 </select>
                             </div>
                             
-                            <?php if ($usuarioEditar): ?>
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-1"></i> Deja la contraseña en blanco para mantener la actual.
-                                </div>
-                            <?php endif; ?>
-                            
+                            <?php if (!$usuarioEditar): ?>
+                            <!-- Campos para nuevo usuario -->
                             <div class="mb-3">
-                                <label for="contrasena" class="form-label"><?= $usuarioEditar ? 'Nueva Contraseña' : 'Contraseña' ?></label>
+                                <label for="contrasena" class="form-label">Contraseña</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="contrasena" name="contrasena" 
-                                           <?= $usuarioEditar ? '' : 'required' ?>>
+                                           required minlength="6">
                                     <button class="btn btn-outline-secondary" type="button" 
                                             onclick="togglePassword('contrasena')">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <?php if ($usuarioEditar): ?>
-                                    <div class="form-text">Mínimo 8 caracteres</div>
-                                <?php endif; ?>
+                                <div class="form-text">Mínimo 6 caracteres</div>
                             </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmar_contrasena" class="form-label">Confirmar Contraseña</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirmar_contrasena" 
+                                           name="confirmar_contrasena" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="togglePassword('confirmar_contrasena')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <?php else: ?>
+                            <!-- Campo para cambiar contraseña (edición) -->
+                            <div class="mb-3">
+                                <label class="form-label">Cambiar contraseña</label>
+                                <div class="input-group mb-2">
+                                    <input type="password" class="form-control" id="contrasena" name="contrasena" 
+                                           placeholder="Nueva contraseña (dejar en blanco para no cambiar)" minlength="6">
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="togglePassword('contrasena')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirmar_contrasena" 
+                                           name="confirmar_contrasena" placeholder="Confirmar nueva contraseña">
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="togglePassword('confirmar_contrasena')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Dejar en blanco para mantener la contraseña actual</div>
+                            </div>
+                            <?php endif; ?>
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">
