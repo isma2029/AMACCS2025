@@ -1,25 +1,78 @@
 <?php
-session_start();
-require_once 'clases/solicitudsoftware.php';
+// Configuración de errores
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Verificar sesión y rol de administrador
-if (!isset($_SESSION['usuario']) || $_SESSION['rol'] != 'admin') {
-    header("Location: index.php");
+// Iniciar sesión si no está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar autenticación
+if (!isset($_SESSION['id_usuario'])) {
+    $_SESSION['mensaje'] = [
+        'tipo' => 'warning',
+        'texto' => 'Debe iniciar sesión para acceder a esta sección.'
+    ];
+    header('Location: index.php');
     exit();
 }
 
-$solObj = new SolicitudSoftware();
-$mensaje = '';
+// Verificar rol de administrador
+if ($_SESSION['rol'] !== 'admin') {
+    $_SESSION['mensaje'] = [
+        'tipo' => 'danger',
+        'texto' => 'No tiene permisos para acceder a esta sección.'
+    ];
+    header('Location: dashboard.php');
+    exit();
+}
 
-// Procesar acciones
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Actualizar estado de la solicitud
-    if (isset($_POST['actualizar_estado'])) {
-        $id_solicitud = (int)$_POST['id_solicitud'];
-        $estado = $_POST['estado'];
-        $comentario = trim($_POST['comentario_admin']);
+// Incluir archivos necesarios
+require_once 'clases/SolicitudSoftware.php';
+require_once 'clases/Usuario.php';
+
+// Inicializar variables
+$solicitudManager = new SolicitudSoftware();
+$usuarioManager = new Usuario();
+$mensaje = '';
+$solicitudes = [];
+
+// Manejar mensajes de la sesión
+if (isset($_SESSION['mensaje'])) {
+    $mensaje = sprintf(
+        '<div class="alert alert-%s alert-dismissible fade show" role="alert">%s<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>',
+        $_SESSION['mensaje']['tipo'],
+        $_SESSION['mensaje']['texto']
+    );
+    unset($_SESSION['mensaje']);
+}
+
+try {
+    // Obtener todas las solicitudes
+    $solicitudes = $solicitudManager->listarSolicitudes();
+    
+    // Si no hay solicitudes, mostrar mensaje
+    if (empty($solicitudes)) {
+        $mensaje = "<div class='alert alert-info'>No hay solicitudes de software pendientes.</div>";
+    }
+} catch (Exception $e) {
+    error_log("Error al obtener solicitudes: " . $e->getMessage());
+    $mensaje = "<div class='alert alert-danger'>Error al cargar las solicitudes. Por favor, intente nuevamente.</div>";
+    $solicitudes = [];
+}
+
+// Procesar la actualización del estado
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['actualizar_estado'])) {
+    $id_solicitud = filter_input(INPUT_POST, 'id_solicitud', FILTER_VALIDATE_INT);
+    $estado = filter_input(INPUT_POST, 'estado', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR);
+    $comentario = filter_input(INPUT_POST, 'comentario_admin', FILTER_DEFAULT, FILTER_REQUIRE_SCALAR) ?: '';
+    
+    if ($id_solicitud && $estado) {
+        $estado = htmlspecialchars($estado, ENT_QUOTES, 'UTF-8');
+        $comentario = trim(htmlspecialchars($comentario, ENT_QUOTES, 'UTF-8'));
         
-        if ($solObj->actualizarEstado($id_solicitud, $estado, $comentario)) {
+        if ($solicitudManager->actualizarEstado($id_solicitud, $estado, $comentario)) {
             $mensaje = 'Estado actualizado correctamente';
         } else {
             $mensaje = 'Error al actualizar el estado';
@@ -29,8 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Eliminar solicitud
     if (isset($_POST['eliminar'])) {
         $id_solicitud = (int)$_POST['id_solicitud'];
-        if ($solObj->eliminarSolicitud($id_solicitud)) {
-            $mensaje = 'Solicitud eliminada correctamente';
+        if ($solicitudManager->eliminarSolicitud($id_solicitud)) {
+            $_SESSION['mensaje'] = [
+                'tipo' => 'success',
+                'texto' => 'Solicitud eliminada correctamente'
+            ];
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
         } else {
             $mensaje = 'Error al eliminar la solicitud';
         }
@@ -39,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Obtener todas las solicitudes con filtros
 $filtro_estado = $_GET['estado'] ?? '';
-$solicitudes = $solObj->listarSolicitudes($filtro_estado);
+$solicitudes = $solicitudManager->listarSolicitudes($filtro_estado);
 ?>
 
 <!DOCTYPE html>

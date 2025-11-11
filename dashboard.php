@@ -1,13 +1,41 @@
 <?php
-session_start();
+// Configuración de errores
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
+// Iniciar sesión si no está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar autenticación
+if (!isset($_SESSION['id_usuario'])) {
+    $_SESSION['mensaje'] = [
+        'tipo' => 'warning',
+        'texto' => 'Debe iniciar sesión para acceder a esta sección.'
+    ];
+    header('Location: index.php');
     exit();
 }
 
-$nombre = $_SESSION['nombre'];
-$rol = $_SESSION['rol'];
+// Obtener datos del usuario
+$nombre = $_SESSION['nombre'] ?? 'Usuario';
+$rol = $_SESSION['rol'] ?? '';
+$totalTickets = 0;
+$ticketsPendientes = 0;
+
+// Incluir archivos necesarios según el rol
+if ($rol === 'admin') {
+    require_once 'clases/Usuario.php';
+    require_once 'clases/TicketManager.php';
+    try {
+        $ticketManager = new TicketManager();
+        $totalTickets = $ticketManager->contarTickets();
+        $ticketsPendientes = $ticketManager->contarTicketsPorEstado('pendiente');
+    } catch (Exception $e) {
+        error_log("Error en dashboard: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

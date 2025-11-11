@@ -41,13 +41,20 @@ class Conexion {
      */
     private function conectar() {
         try {
+            // Mostrar información de depuración
+            error_log("Intentando conectar a la base de datos...");
+            error_log("Host: {$this->host}");
+            error_log("Base de datos: {$this->base_datos}");
+            error_log("Usuario: {$this->usuario}");
+            error_log("Puerto: {$this->puerto}");
+            
             $dsn = "mysql:host={$this->host};port={$this->puerto};dbname={$this->base_datos};charset={$this->charset}";
             
             $opciones = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
-                PDO::ATTR_PERSISTENT         => true,
+                PDO::ATTR_PERSISTENT         => false, // Cambiado a false para mejor manejo de conexiones
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
             ];
             

@@ -210,7 +210,16 @@ class TicketManager {
 
     // La declaración duplicada de asignarTicket ha sido eliminada. Se mantiene la versión más completa.
 
-    // La declaración duplicada de cambiarEstado ha sido eliminada. Se mantiene la versión más completa.
+    public function cambiarEstado($id_ticket, $estado, $id_usuario, $detalle = null) {
+        $sql = "UPDATE tickets SET estado = :estado, fecha_actualizacion = NOW() WHERE id_ticket = :id_ticket";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':estado', $estado);
+        $stmt->bindParam(':id_ticket', $id_ticket);
+        $stmt->execute();
+
+        $this->agregarHistorial($id_ticket, $id_usuario, 'cambio_estado', $detalle);
+        return true;
+    }
 
     // Notificaciones básicas (puedes adaptar a SMTP real)
     private function notificarAdminNuevoTicket($id_ticket, $titulo) {
